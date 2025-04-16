@@ -5,6 +5,9 @@ const app = express();
 import morgan from "morgan";
 import connectDB from "./config/db.js";
 import router from "./routes/authRoute.js";
+import categoryRoutes from "./routes/categoryRoutes.js"
+
+
 const PORT = process.env.PORT || 8080;
 
 // middleware
@@ -17,6 +20,7 @@ app.get("/", (req, res) => {
 // for api
 // app.use("/api",router)
 app.use("/api/v1/auth", router);
+app.use("/api/v1/category", categoryRoutes);
 
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
