@@ -1,23 +1,4 @@
-// import slugify from "slugify";
-// import categoryModel from "../models/cetegoryModel.js"
-// export const createCategoryController = async(req, res) => {
-//     try{
-//         const  {name} = req.body
-//         if(!name){
-//             return res.status(401).json("name is required")
-//         }
-//         const existingcategory = await categoryModel({name})
-//         if(existingcategory){
-//             return res.status(401).json({message:"category already exist"})
-//         }
-//         const newCategory = await categoryModel({name,slug:slugify(name).save()})
-//         return res.status(201).json({message:"category created..",newCategory})
-//     }
-//     catch(error){
-//         console.log(error)
-//          res.status(500).send({success:false,error,message:"error in Category"});
-//     }
-// };
+
 import slugify from "slugify";
 import categoryModel from "../models/cetegoryModel.js";
 
@@ -56,3 +37,23 @@ export const createCategoryController = async (req, res) => {
     });
   }
 };
+
+// update api 
+export const updateCategoryController =async (req,res) =>{
+  try{
+    const{name} = req.body
+    const{id}= req.params
+    const category = await categoryModel.findByIdAndUpdate(id,{slug:slugify(name)},{new:true})
+    res.status(200).send({
+      success:true,
+      message:"Category updated successfully",
+      category:category
+    })
+
+  }
+  catch(error){
+    console.log(error)
+    res.status(500).send({success:false,error, message:"Error in a updateing category"})
+  }
+
+}
