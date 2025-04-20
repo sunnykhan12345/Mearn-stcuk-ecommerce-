@@ -2,6 +2,7 @@ import slugify from "slugify";
 import productModel from "../models/productModel.js";
 import fs from "fs";
 import formidable from "formidable";
+import { count, log } from "console";
 
 const productController = async (req, res) => {
   const form = formidable({ multiples: false, keepExtensions: true });
@@ -89,3 +90,71 @@ const productController = async (req, res) => {
 };
 
 export default productController;
+
+// get all product
+
+export const getAllProductController = async (req, res) => {
+  try {
+    const products = await productModel
+      .find({})
+      .populate("category")
+      .select("-photo")
+      .limit(12)
+      .sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      counttotla: products.length,
+      message: "Products retrieved successfully",
+      products,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+      message: "Error fetching products",
+    });
+  }
+};
+
+// get single product
+export const getSingleProductController = async (req, res) => {
+  try {
+    const product = await productModel
+      .findOne({ slug: req.params.slug })
+      .select("-photo")
+      .populate("category");
+    return res.status(200).json({
+      success: true,
+      product,
+      message: "single product get successed",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+      message: "Error fetching single  product",
+    });
+  }
+};
+
+export const getPhotoController = async (req, res) => {
+  try {
+    const product = await productModel.findById(req.params.pid).select("photo");
+
+    if (product && product.photo && product.photo.data) {
+      res.set("Content-Type", product.photo.contentType); 
+      return res.status(200).send(product.photo.data); 
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Photo not found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching photo",
+    });
+  }
+};
