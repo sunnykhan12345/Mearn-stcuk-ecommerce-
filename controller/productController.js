@@ -142,8 +142,8 @@ export const getPhotoController = async (req, res) => {
     const product = await productModel.findById(req.params.pid).select("photo");
 
     if (product && product.photo && product.photo.data) {
-      res.set("Content-Type", product.photo.contentType); 
-      return res.status(200).send(product.photo.data); 
+      res.set("Content-Type", product.photo.contentType);
+      return res.status(200).send(product.photo.data);
     } else {
       return res.status(404).json({
         success: false,
@@ -157,4 +157,91 @@ export const getPhotoController = async (req, res) => {
       message: "Error fetching photo",
     });
   }
+};
+export const productDeleteController = async (req, res) => {
+  try {
+    const product = await productModel
+      .findByIdAndDelete(req.params.pid)
+      .select("-photo");
+    return res.status(200).json({
+      success: true,
+      message: "product deleted successfully",
+      product,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Phot0 deleting Error",
+    });
+  }
+};
+
+// // udpate product api
+// export const updateProductController =async(req,res) =>{
+//   try{
+
+//   }
+//   catch(error){
+//     console.log(error)
+//     return res.status(500).json({
+//       success:false,
+//       message:"Error udpating product"
+//     })
+//   }
+// }
+
+export const updateProductController = async (req, res) => {
+  const form = formidable({ multiples: false, keepExtensions: true });
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Form parsing error",
+        error: err.message,
+      });
+    }
+
+    const { name, description, category, quantity, price, shipping } = fields;
+    const { photo } = files;
+
+    try {
+      const product = await productModel.findById(req.params.id);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+
+      product.name = name;
+      product.description = description;
+      product.category = category;
+      product.quantity = quantity;
+      product.price = price;
+      product.shipping = shipping;
+      product.slug = slugify(name);
+
+      if (photo && photo.path) {
+        product.photo.data = fs.readFileSync(photo.path);
+        product.photo.contentType = photo.type;
+      }
+
+      await product.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+        product,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        message: "Error updating product",
+        error: error.message,
+      });
+    }
+  });
 };
